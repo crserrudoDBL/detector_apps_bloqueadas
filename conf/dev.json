@@ -1,0 +1,18 @@
+{
+  "resource_managers": [
+    "http://edh-master-02d.root.corp:8088",
+    "http://edh-master-01d.root.corp:8088",
+    "http://edh-master-03d.root.corp:8088"
+  ],
+  "elastic": {
+    "url": "http://172.30.213.190:9200",
+    "verify_ssl": false
+  },
+  "indices": {
+    "alerts": "apps_bloqueadas_spark",
+    "state": "estados_apps_bloqueadas_spark"
+  },
+  "min_elapsed_minutes": 60,
+  "blocked_window_minutes": 60,
+  "state_retention_hours": 3
+}
