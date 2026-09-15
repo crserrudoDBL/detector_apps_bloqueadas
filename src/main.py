@@ -11,19 +11,22 @@ Uso:
   python3 main.py --dry-run --state-backend elastic                # prueba con estado ya en Elastic
   python3 main.py --conf ../conf/prod.json                         # produccion: alerta a Elastic
 
-Credenciales de Elastic: DETECTOR_ES_USER / DETECTOR_ES_PASSWORD por variable de entorno si estan
-seteadas; si no, usa el usuario compartido dblandit/dblandit por default (ver build_es_client).
+Credenciales de Elastic: Requiere DETECTOR_ES_USER / DETECTOR_ES_PASSWORD seteadas en el archivo
+.env o como variables de entorno (ver .env.example).
 """
 import argparse
 import json
 import os
 import sys
+from dotenv import load_dotenv
 
 from logger import ProcessLogger
 from yarn_client import YarnClient
 from state_repo import FileStateRepo, ElasticStateRepo
 from alert_repo import ConsoleAlertSink, ElasticAlertSink
 import detector
+
+load_dotenv()  # Carga las variables de entorno desde .env
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONF = os.path.join(BASE_DIR, "..", "conf", "prod.json")
@@ -34,10 +37,14 @@ DEFAULT_STATE_FILE = "/var/tmp/detector_apps_bloqueadas/state.json"
 def build_es_client(conf):
     from elasticsearch import Elasticsearch
 
-    # Si DETECTOR_ES_USER/DETECTOR_ES_PASSWORD estan seteadas se usan esas; si no, cae al usuario
-    # compartido (mismo que usa el resto del equipo) para no bloquear pruebas rapidas.
-    user = os.environ.get("DETECTOR_ES_USER") or "dblandit"
-    password = os.environ.get("DETECTOR_ES_PASSWORD") or "dblandit"
+    user = os.environ.get("DETECTOR_ES_USER")
+    password = os.environ.get("DETECTOR_ES_PASSWORD")
+
+    if not user or not password:
+        raise RuntimeError(
+            "Requiere DETECTOR_ES_USER y DETECTOR_ES_PASSWORD seteadas en el archivo .env "
+            "o como variables de entorno. Ver .env.example"
+        )
 
     return Elasticsearch(
         [conf["elastic"]["url"]],
